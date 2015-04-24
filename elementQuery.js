@@ -1,5 +1,5 @@
 /*! elementQuery | Author: Tyson Matanich (http://matanich.com), 2013 | License: MIT */
-(function (window, document, undefined) {
+(function(window, document, undefined) {
     // Enable strict mode
     "use strict";
 
@@ -13,13 +13,13 @@
 
     var cssRules = null;
 
-    var setCssRules = function () {
+    var setCssRules = function() {
         if (document.styleSheets[0]) {
             cssRules = (document.styleSheets[0].cssRules !== undefined) ? "cssRules" : "rules";
         }
     }
 
-    var addQueryDataValue = function (selector, type, pair, number, value) {
+    var addQueryDataValue = function(selector, type, pair, number, value) {
 
         selector = trim(selector);
 
@@ -53,15 +53,14 @@
         }
     };
 
-    var updateQueryData = function (data, doUpdate) {
+    var updateQueryData = function(data, doUpdate) {
 
         var i, j, k;
         for (i in data) {
             for (j in data[i]) {
                 if (typeof data[i][j] == "string") {
                     addQueryDataValue(i, j, data[i][j]);
-                }
-                else if (typeof data[i][j] == "object") {
+                } else if (typeof data[i][j] == "object") {
                     for (k = 0; k < data[i][j].length; k++) {
                         addQueryDataValue(i, j, data[i][j][k]);
                     }
@@ -74,7 +73,7 @@
         }
     };
 
-    var processSelector = function (selectorText) {
+    var processSelector = function(selectorText) {
 
         if (selectorText) {
 
@@ -108,7 +107,7 @@
                                 // Append second half of the selector
                                 tail = selectors[i].substring(result.index + result[1].length);
                                 if (tail.length > 0) {
-                                    
+
                                     t = tail.indexOf(" ");
                                     if (t != 0) {
                                         if (t > 0) {
@@ -131,8 +130,7 @@
                             // Reached the end of the set
                             prevIndex = result.index + result[1].length;
                             selector = null;
-                        }
-                        else {
+                        } else {
                             // Update result index to process next item in the set
                             regex.lastIndex = result.index + result[1].length;
                         }
@@ -143,69 +141,71 @@
         }
     };
 
-    var processStyleSheet = function (styleSheet, force) {
-        
+    var processStyleSheet = function(styleSheet, force) {
+
         if (cssRules == null) {
             setCssRules();
         }
-        if (styleSheet[cssRules] && styleSheet[cssRules].length > 0) {
+        try {
+            if (styleSheet[cssRules] && styleSheet[cssRules].length > 0) {
 
-            var ownerNode = styleSheet.ownerNode || styleSheet.owningElement;
-            if (force || (ownerNode.getAttribute("data-elementquery-bypass") === null && ownerNode.getAttribute("data-elementquery-processed") === null)) {
+                var ownerNode = styleSheet.ownerNode || styleSheet.owningElement;
+                if (force || (ownerNode.getAttribute("data-elementquery-bypass") === null && ownerNode.getAttribute("data-elementquery-processed") === null)) {
 
-                var i, j, rule;
+                    var i, j, rule;
 
-                for (i = 0; i < styleSheet[cssRules].length; i++) {
-                    rule = styleSheet[cssRules][i];
-
-                    // Check nested rules in media queries etc
-                    if (rule[cssRules] && rule[cssRules].length > 0) {
-                        for (j = 0; j < rule[cssRules].length; j++) {
-                            processSelector(rule[cssRules][j].selectorText);
+                    for (i = 0; i < styleSheet[cssRules].length; i++) {
+                        rule = styleSheet[cssRules][i];
+                        console.log(rule);
+                        // Check nested rules in media queries etc
+                        if (rule[cssRules] && rule[cssRules].length > 0) {
+                            for (j = 0; j < rule[cssRules].length; j++) {
+                                processSelector(rule[cssRules][j].selectorText);
+                            }
+                        } else {
+                            processSelector(rule.selectorText);
                         }
                     }
-                    else {
-                        processSelector(rule.selectorText);
-                    }
-                }
 
-                // Flag the style sheet as processed
-                ownerNode.setAttribute("data-elementquery-processed", "");
+                    // Flag the style sheet as processed
+                    ownerNode.setAttribute("data-elementquery-processed", "");
+                }
             }
+        } catch (e) {
+            if (e.name !== 'SecurityError')
+                throw e;
         }
     };
 
     // Refactor from jQuery.trim()
-    var trim = function (text) {
+    var trim = function(text) {
         if (text == null) {
             return "";
-        }
-        else {
+        } else {
             var core_trim = "".trim;
             if (core_trim && !core_trim.call("\uFEFF\xA0")) {
                 return core_trim.call(text);
-            }
-            else {
+            } else {
                 return (text + "").replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "");
             }
         }
     };
 
     // Refactor from jquery().addClass() and jquery().removeClass()
-    var clean = function (element, attr) {
+    var clean = function(element, attr) {
         // This expression is here for better compressibility
         var val = element.getAttribute(attr);
         return val ? (" " + val + " ").replace(/[\t\r\n]/g, " ") : " ";
     };
 
     // Refactor from jquery().addClass()
-    var addTo = function (element, attr, value) {
+    var addTo = function(element, attr, value) {
 
         if (element.nodeType === 1) {
             var val = trim(value);
             if (val != "") {
                 var cur = clean(element, attr);
-                
+
                 if (cur.indexOf(" " + val + " ") < 0) {
                     // Add the value if its not already there
                     element.setAttribute(attr, trim(cur + val));
@@ -215,7 +215,7 @@
     };
 
     // Refactor from jquery().removeClass()
-    var removeFrom = function (element, attr, value) {
+    var removeFrom = function(element, attr, value) {
 
         if (element.nodeType === 1) {
             var val = trim(value);
@@ -235,7 +235,7 @@
         }
     };
 
-    var init = function () {
+    var init = function() {
 
         // Process the style sheets
         var i;
@@ -246,7 +246,7 @@
         refresh();
     }
 
-    var refresh = function () {
+    var refresh = function() {
 
         var i, ei, j, k, elements, element, val;
 
@@ -284,8 +284,7 @@
                                 (j == "max-height" && element.offsetHeight <= val)) {
                                 // Add matching attr value
                                 addTo(element, j, k);
-                            }
-                            else {
+                            } else {
                                 // Remove non-matching attr value
                                 removeFrom(element, j, k);
                             }
@@ -304,7 +303,7 @@
     }
 
     // Expose some public functions
-    window.elementQuery = function (arg1, arg2) {
+    window.elementQuery = function(arg1, arg2) {
 
         if (arg1 && typeof arg1 == "object") {
             if (arg1.cssRules || arg1.rules) {
@@ -318,14 +317,13 @@
                 // Add new selector queries
                 updateQueryData(arg1, arg2);
             }
-        }
-        else if (!arg1 && !arg2) {
+        } else if (!arg1 && !arg2) {
             refresh();
         }
     };
 
     //NOTE: For development purposes only!
-    window.elementQuery.selectors = function () {
+    window.elementQuery.selectors = function() {
 
         var data = {};
         var i, j, k;
@@ -356,15 +354,14 @@
         window.addEventListener("resize", refresh, false);
         window.addEventListener("DOMContentLoaded", init, false);
         window.addEventListener("load", init, false);
-    }
-    else if (window.attachEvent) {
+    } else if (window.attachEvent) {
         window.attachEvent("onresize", refresh);
         window.attachEvent("onload", init);
     }
 }(this, document, undefined));
 
 /*! getEmPixels  | Author: Tyson Matanich (http://matanich.com), 2013 | License: MIT */
-(function (document, documentElement) {
+(function(document, documentElement) {
     // Enable strict mode
     "use strict";
 
@@ -372,7 +369,7 @@
     var important = "!important;";
     var style = "position:absolute" + important + "visibility:hidden" + important + "width:1em" + important + "font-size:1em" + important + "padding:0" + important;
 
-    window.getEmPixels = function (element) {
+    window.getEmPixels = function(element) {
 
         var extraBody;
 
@@ -394,8 +391,7 @@
         if (extraBody) {
             // Remove the extra body element
             documentElement.removeChild(extraBody);
-        }
-        else {
+        } else {
             // Remove the test element
             element.removeChild(testElement);
         }
